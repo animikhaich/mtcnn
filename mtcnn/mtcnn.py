@@ -29,7 +29,7 @@
 # It has been rebuilt from scratch, taking the David Sandberg's implementation as a reference.
 #
 
-import cv2
+from PIL import Image
 import numpy as np
 import pkg_resources
 
@@ -78,13 +78,15 @@ class MTCNN(object):
             steps_threshold = [0.6, 0.7, 0.7]
 
         if weights_file is None:
-            weights_file = pkg_resources.resource_stream('mtcnn', 'data/mtcnn_weights.npy')
+            weights_file = pkg_resources.resource_stream(
+                'mtcnn', 'data/mtcnn_weights.npy')
 
         self._min_face_size = min_face_size
         self._steps_threshold = steps_threshold
         self._scale_factor = scale_factor
 
-        self._pnet, self._rnet, self._onet = NetworkFactory().build_P_R_O_nets_from_file(weights_file)
+        self._pnet, self._rnet, self._onet = NetworkFactory(
+        ).build_P_R_O_nets_from_file(weights_file)
 
     @property
     def min_face_size(self):
@@ -121,7 +123,11 @@ class MTCNN(object):
         width_scaled = int(np.ceil(width * scale))
         height_scaled = int(np.ceil(height * scale))
 
-        im_data = cv2.resize(image, (width_scaled, height_scaled), interpolation=cv2.INTER_AREA)
+        # PIL Image Resize
+        im_data = Image.fromarray(image.astype(np.uint8)).resize(
+            (width_scaled, height_scaled), resample=Image.ANTIALIAS
+        )
+        im_data = np.asarray(im_data)
 
         # Normalize the image's pixels
         im_data_normalized = (im_data - 127.5) * 0.0078125
@@ -150,7 +156,8 @@ class MTCNN(object):
             dy2 = np.flipud(dy2)
 
         score = imap[(y, x)]
-        reg = np.transpose(np.vstack([dx1[(y, x)], dy1[(y, x)], dx2[(y, x)], dy2[(y, x)]]))
+        reg = np.transpose(
+            np.vstack([dx1[(y, x)], dy1[(y, x)], dx2[(y, x)], dy2[(y, x)]]))
 
         if reg.size == 0:
             reg = np.empty(shape=(0, 3))
@@ -257,7 +264,8 @@ class MTCNN(object):
         max_side_length = np.maximum(width, height)
         bbox[:, 0] = bbox[:, 0] + width * 0.5 - max_side_length * 0.5
         bbox[:, 1] = bbox[:, 1] + height * 0.5 - max_side_length * 0.5
-        bbox[:, 2:4] = bbox[:, 0:2] + np.transpose(np.tile(max_side_length, (2, 1)))
+        bbox[:, 2:4] = bbox[:, 0:2] + \
+            np.transpose(np.tile(max_side_length, (2, 1)))
         return bbox
 
     @staticmethod
@@ -365,7 +373,8 @@ class MTCNN(object):
             qq3 = total_boxes[:, 2] + total_boxes[:, 7] * regw
             qq4 = total_boxes[:, 3] + total_boxes[:, 8] * regh
 
-            total_boxes = np.transpose(np.vstack([qq1, qq2, qq3, qq4, total_boxes[:, 4]]))
+            total_boxes = np.transpose(
+                np.vstack([qq1, qq2, qq3, qq4, total_boxes[:, 4]]))
             total_boxes = self.__rerec(total_boxes.copy())
 
             total_boxes[:, 0:4] = np.fix(total_boxes[:, 0:4]).astype(np.int32)
@@ -391,13 +400,18 @@ class MTCNN(object):
         tempimg = np.zeros(shape=(24, 24, 3, num_boxes))
 
         for k in range(0, num_boxes):
-            tmp = np.zeros((int(stage_status.tmph[k]), int(stage_status.tmpw[k]), 3))
+            tmp = np.zeros(
+                (int(stage_status.tmph[k]), int(stage_status.tmpw[k]), 3))
 
             tmp[stage_status.dy[k] - 1:stage_status.edy[k], stage_status.dx[k] - 1:stage_status.edx[k], :] = \
-                img[stage_status.y[k] - 1:stage_status.ey[k], stage_status.x[k] - 1:stage_status.ex[k], :]
+                img[stage_status.y[k] - 1:stage_status.ey[k],
+                    stage_status.x[k] - 1:stage_status.ex[k], :]
 
             if tmp.shape[0] > 0 and tmp.shape[1] > 0 or tmp.shape[0] == 0 and tmp.shape[1] == 0:
-                tempimg[:, :, :, k] = cv2.resize(tmp, (24, 24), interpolation=cv2.INTER_AREA)
+                # PIL Image Resize
+                tmp_data = Image.fromarray(tmp.astype(np.uint8)).resize(
+                    (24, 24), resample=Image.ANTIALIAS
+                )
 
             else:
                 return np.empty(shape=(0,)), stage_status
@@ -414,14 +428,16 @@ class MTCNN(object):
 
         ipass = np.where(score > self._steps_threshold[1])
 
-        total_boxes = np.hstack([total_boxes[ipass[0], 0:4].copy(), np.expand_dims(score[ipass].copy(), 1)])
+        total_boxes = np.hstack(
+            [total_boxes[ipass[0], 0:4].copy(), np.expand_dims(score[ipass].copy(), 1)])
 
         mv = out0[:, ipass[0]]
 
         if total_boxes.shape[0] > 0:
             pick = self.__nms(total_boxes, 0.7, 'Union')
             total_boxes = total_boxes[pick, :]
-            total_boxes = self.__bbreg(total_boxes.copy(), np.transpose(mv[:, pick]))
+            total_boxes = self.__bbreg(
+                total_boxes.copy(), np.transpose(mv[:, pick]))
             total_boxes = self.__rerec(total_boxes.copy())
 
         return total_boxes, stage_status
@@ -451,10 +467,14 @@ class MTCNN(object):
             tmp = np.zeros((int(status.tmph[k]), int(status.tmpw[k]), 3))
 
             tmp[status.dy[k] - 1:status.edy[k], status.dx[k] - 1:status.edx[k], :] = \
-                img[status.y[k] - 1:status.ey[k], status.x[k] - 1:status.ex[k], :]
+                img[status.y[k] - 1:status.ey[k],
+                    status.x[k] - 1:status.ex[k], :]
 
             if tmp.shape[0] > 0 and tmp.shape[1] > 0 or tmp.shape[0] == 0 and tmp.shape[1] == 0:
-                tempimg[:, :, :, k] = cv2.resize(tmp, (48, 48), interpolation=cv2.INTER_AREA)
+                # PIL Image Resize
+                tmp_data = Image.fromarray(tmp.astype(np.uint8)).resize(
+                    (48, 48), resample=Image.ANTIALIAS
+                )
             else:
                 return np.empty(shape=(0,)), np.empty(shape=(0,))
 
@@ -474,15 +494,18 @@ class MTCNN(object):
 
         points = points[:, ipass[0]]
 
-        total_boxes = np.hstack([total_boxes[ipass[0], 0:4].copy(), np.expand_dims(score[ipass].copy(), 1)])
+        total_boxes = np.hstack(
+            [total_boxes[ipass[0], 0:4].copy(), np.expand_dims(score[ipass].copy(), 1)])
 
         mv = out0[:, ipass[0]]
 
         w = total_boxes[:, 2] - total_boxes[:, 0] + 1
         h = total_boxes[:, 3] - total_boxes[:, 1] + 1
 
-        points[0:5, :] = np.tile(w, (5, 1)) * points[0:5, :] + np.tile(total_boxes[:, 0], (5, 1)) - 1
-        points[5:10, :] = np.tile(h, (5, 1)) * points[5:10, :] + np.tile(total_boxes[:, 1], (5, 1)) - 1
+        points[0:5, :] = np.tile(
+            w, (5, 1)) * points[0:5, :] + np.tile(total_boxes[:, 0], (5, 1)) - 1
+        points[5:10, :] = np.tile(
+            h, (5, 1)) * points[5:10, :] + np.tile(total_boxes[:, 1], (5, 1)) - 1
 
         if total_boxes.shape[0] > 0:
             total_boxes = self.__bbreg(total_boxes.copy(), np.transpose(mv))

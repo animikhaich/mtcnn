@@ -28,7 +28,7 @@ from setuptools import setup, setuptools
 
 
 __author__ = "Iván de Paz Centeno"
-__version__= "0.1.0"
+__version__ = "0.1.0"
 
 
 def readme():
@@ -51,7 +51,7 @@ setup(name='mtcnn',
       packages=setuptools.find_packages(exclude=["tests.*", "tests"]),
       install_requires=[
           "keras>=2.0.0",
-          "opencv-python>=4.1.0"
+          "pillow>=7.1.1"
       ],
       classifiers=[
           'Environment :: Console',
