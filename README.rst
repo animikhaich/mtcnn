@@ -1,10 +1,8 @@
 MTCNN
 #####
 
-.. image:: https://badge.fury.io/py/mtcnn.svg
-    :target: https://badge.fury.io/py/mtcnn
-.. image:: https://travis-ci.org/ipazc/mtcnn.svg?branch=master
-    :target: https://travis-ci.org/ipazc/mtcnn
+.. image:: https://travis-ci.com/animikhaich/mtcnn.svg?branch=master
+    :target: https://travis-ci.com/animikhaich/mtcnn
 
 
 Implementation of the MTCNN face detector for Keras in Python3.4+. It is written from scratch, using as a reference the implementation of

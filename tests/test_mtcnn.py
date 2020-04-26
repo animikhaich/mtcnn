@@ -1,6 +1,6 @@
 import unittest
-import cv2
-
+from PIL import Image
+import numpy as np
 from mtcnn.exceptions import InvalidImage
 from mtcnn import MTCNN
 
@@ -19,7 +19,8 @@ class TestMTCNN(unittest.TestCase):
         MTCNN is able to detect faces and landmarks on an image
         :return:
         """
-        ivan = cv2.imread("ivan.jpg")
+        ivan = Image.open("ivan.jpg").convert('RGB')
+        ivan = np.asarray(ivan)
 
         result = mtcnn.detect_faces(ivan)  # type: list
 
@@ -50,7 +51,8 @@ class TestMTCNN(unittest.TestCase):
         MTCNN detects invalid images
         :return:
         """
-        ivan = cv2.imread("example.py")
+        ivan = Image.open("example.py").convert('RGB')
+        ivan = np.asarray(ivan)
 
         with self.assertRaises(InvalidImage):
             result = mtcnn.detect_faces(ivan)  # type: list
@@ -60,11 +62,11 @@ class TestMTCNN(unittest.TestCase):
         MTCNN successfully reports an empty list when no faces are detected.
         :return:
         """
-        ivan = cv2.imread("no-faces.jpg")
+        ivan = Image.open("no-faces.jpg").convert('RGB')
+        ivan = np.asarray(ivan)
 
         result = mtcnn.detect_faces(ivan)  # type: list
         self.assertEqual(len(result), 0)
-
 
     def test_mtcnn_multiple_instances(self):
         """
@@ -74,7 +76,8 @@ class TestMTCNN(unittest.TestCase):
         detector_1 = MTCNN(steps_threshold=[.2, .7, .7])
         detector_2 = MTCNN(steps_threshold=[.1, .1, .1])
 
-        ivan = cv2.imread("ivan.jpg")
+        ivan = Image.open("ivan.jpg").convert('RGB')
+        ivan = np.asarray(ivan)
 
         faces_1 = detector_1.detect_faces(ivan)
         faces_2 = detector_2.detect_faces(ivan)
