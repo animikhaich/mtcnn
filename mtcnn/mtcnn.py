@@ -412,6 +412,7 @@ class MTCNN(object):
                 tmp_data = Image.fromarray(tmp.astype(np.uint8)).resize(
                     (24, 24), resample=Image.ANTIALIAS
                 )
+                tempimg[:, :, :, k] = np.asarray(tmp_data)
 
             else:
                 return np.empty(shape=(0,)), stage_status
@@ -475,6 +476,8 @@ class MTCNN(object):
                 tmp_data = Image.fromarray(tmp.astype(np.uint8)).resize(
                     (48, 48), resample=Image.ANTIALIAS
                 )
+                tempimg[:, :, :, k] = np.asarray(tmp_data)
+
             else:
                 return np.empty(shape=(0,)), np.empty(shape=(0,))
 
