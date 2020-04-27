@@ -21,6 +21,7 @@ class TestMTCNN(unittest.TestCase):
         """
         ivan = Image.open("ivan.jpg").convert('RGB')
         ivan = np.asarray(ivan)
+        ivan = ivan[:, :, ::-1]  # Convert to BGR
 
         result = mtcnn.detect_faces(ivan)  # type: list
 
@@ -54,6 +55,7 @@ class TestMTCNN(unittest.TestCase):
         try:
             ivan = Image.open("example.py").convert('RGB')
             ivan = np.asarray(ivan)
+            ivan = ivan[:, :, ::-1]  # Convert to BGR
         except:
             ivan = None
 
@@ -67,6 +69,7 @@ class TestMTCNN(unittest.TestCase):
         """
         ivan = Image.open("no-faces.jpg").convert('RGB')
         ivan = np.asarray(ivan)
+        ivan = ivan[:, :, ::-1]  # Convert to BGR
 
         result = mtcnn.detect_faces(ivan)  # type: list
         self.assertEqual(len(result), 0)
@@ -81,6 +84,7 @@ class TestMTCNN(unittest.TestCase):
 
         ivan = Image.open("ivan.jpg").convert('RGB')
         ivan = np.asarray(ivan)
+        ivan = ivan[:, :, ::-1]  # Convert to BGR
 
         faces_1 = detector_1.detect_faces(ivan)
         faces_2 = detector_2.detect_faces(ivan)
