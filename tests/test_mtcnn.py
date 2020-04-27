@@ -51,8 +51,11 @@ class TestMTCNN(unittest.TestCase):
         MTCNN detects invalid images
         :return:
         """
-        ivan = Image.open("example.py").convert('RGB')
-        ivan = np.asarray(ivan)
+        try:
+            ivan = Image.open("example.py").convert('RGB')
+            ivan = np.asarray(ivan)
+        except:
+            ivan = None
 
         with self.assertRaises(InvalidImage):
             result = mtcnn.detect_faces(ivan)  # type: list
